@@ -71,6 +71,7 @@
         .control-row { display: flex; gap: 12px; margin-bottom: 20px; }
         .util-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: white; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; color: #475569; }
         .action-btn { background: var(--primary); color: white; border: none; padding: 16px; font-size: 18px; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); }
+        .action-btn:hover { background: var(--primary-hover); }
         
         /* Quiz Screen */
         .quiz-container { max-width: 500px; margin: 0 auto; width: 100%; }
@@ -89,26 +90,14 @@
         .modal-box { background: white; padding: 35px; border-radius: 24px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center; max-height: 85vh; display: flex; flex-direction: column; animation: modalIn 0.2s ease-out; }
         @keyframes modalIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* ==========================================================================
-           🎯 NEW SPLIT-SCREEN VISUAL REFERENCE DESIGN (JAPANESEPOD101 STYLE)
-           ========================================================================== */
+        /* Split-Screen Visual Mnemonic Overlay Card Layout */
         .visual-split-card { display: flex; background: #1e293b; border-radius: 16px; overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; height: 240px; }
-        
-        /* Left Side: Pure Character Display */
         .visual-left { flex: 1; background: #2b394e; display: flex; align-items: center; justify-content: center; font-size: 110px; font-weight: 700; color: #ffffff; position: relative; }
-        
-        /* Right Side: Dynamic Character-Over-Mnemonic Fusion Layer */
         .visual-right { flex: 1; background: #ffffff; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        
-        /* The Translucent Giant Background Emoji Anchor */
         .bg-mnemonic-graphic { font-size: 140px; opacity: 0.28; position: absolute; z-index: 1; user-select: none; display: flex; align-items: center; justify-content: center; filter: grayscale(10%); }
-        
-        /* Foreground Character Tracing on Top */
         .fg-character-trace { font-size: 110px; font-weight: 800; color: #0f172a; position: relative; z-index: 2; user-select: none; line-height: 1; }
-        
-        /* Text Value Footers */
         .visual-meta-title { font-size: 24px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        .visual-meta-desc { font-size: 15px; color: #64748b; font-weight: 600; margin: 4px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .visual-meta-desc { font-size: 15px; color: #64748b; font-weight: 600; margin: 4px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4; padding: 0 10px; }
         .visual-meta-desc span { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; color: var(--primary); font-weight: 700; }
 
         .wrong-list-container { text-align: left; background: #fff1f2; border: 1px solid #ffe4e6; border-radius: 12px; padding: 16px; margin: 15px 0; overflow-y: auto; max-height: 200px; }
@@ -257,7 +246,7 @@
         ],
         diacritics: [
             { name: "ga", h: ["が","ぎ","ぐ","げ","ご"], k: ["ガ","ギ","グ","ゲ","ゴ"], r: ["ga","gi","gu","ge","go"] },
-            { name: "za", h: ["ざ","じ","ず","ぜ","ぞ"], k: ["ザ","ジ","ズ","ゼ","ゾ"], r: ["za","ji","zu","ze","zo"] },
+            { name: "za", h: ["ざ","じ","ず","ぜ","ぞ"], k: ["ザ","ジ","ズ","ぜ","ぞ"], r: ["za","ji","zu","ze","zo"] },
             { name: "da", h: ["だ","ぢ","づ","で","ど"], k: ["ダ","ヂ","ヅ","デ","ド"], r: ["da","ji","zu","de","do"] },
             { name: "ba", h: ["ば","び","ぶ","べ","ぼ"], k: ["バ","び","ブ","ベ","ボ"], r: ["ba","bi","bu","be","bo"] },
             { name: "pa", h: ["ぱ","ぴ","ぷ","ぺ","ぽ"], k: ["パ","ピ","プ","ペ","ポ"], r: ["pa","pi","pu","pe","po"] }
@@ -268,7 +257,7 @@
             { name: "cha", h: ["ちゃ","ちゅ","ちょ"], k: ["チャ","チュ","チョ"], r: ["cha","chu","cho"] },
             { name: "nya", h: ["にゃ","にゅ","にょ"], k: ["ニャ","ニュ","ニョ"], r: ["nya","nyu","nyo"] },
             { name: "hya", h: ["ひゃ","ひゅ","ひょ"], k: ["ヒャ","ヒュ","ヒョ"], r: ["hya","hyu","hyo"] },
-            { name: "mya", h: ["みゃ","みゅ","みょ"], k: ["ミャ","ミュ","ミょ"], r: ["mya","myu","myo"] },
+            { name: "mya", h: ["みゃ","みゅ","みょ"], k: ["ミャ","ミュ","ミョ"], r: ["mya","myu","myo"] },
             { name: "rya", h: ["りゃ","りゅ","りょ"], k: ["リャ","リュ","リョ"], r: ["rya","ryu","ryo"] }
         ],
         digraphsDiacritics: [
@@ -279,7 +268,7 @@
         ]
     };
 
-    // Modified mapping data tailored perfectly for the layered stack alignment views
+    // The full comprehensive 46 character database mapping logic
     const hiraganaMnemonics = {
         "あ": { icon: "🍎", desc: "Shaped like a round apple with a stem", keyword: "Apple" },
         "い": { icon: "👀", desc: "Two eyes looking directly at you", keyword: "Eyes" },
@@ -395,30 +384,26 @@
     }
 
     function handleMnemonicToggle() {
-        handleMnemonicToggle; // Execute redraw matches
         renderChartSection('chart-view-monographs', dataset.monographs);
         renderChartSection('chart-view-diacritics', dataset.diacritics);
         renderChartSection('chart-view-digraphs', dataset.digraphs);
         renderChartSection('chart-view-digraphs-diacritics', dataset.digraphsDiacritics);
     }
 
-    /* 🧠 THE DYNAMIC OVERLAY FUSION INJECTOR */
     function inspectCharacterMnemonic(char, romaji) {
         const lookupKey = (romaji === 'mo' || romaji === 'ni' || romaji === 'fu') ? romaji : char;
         if (selectedSystem !== 'hiragana' || !hiraganaMnemonics[lookupKey]) return;
 
         const data = hiraganaMnemonics[lookupKey];
         
-        // Feed the JapanesePod101 styled Overlay Panels
+        // Feed the Japanesepod101 Split Panel View Component
         document.getElementById('v-panel-char').innerText = char;
         document.getElementById('v-panel-fg-char').innerText = char;
         document.getElementById('v-panel-bg-emoji').innerText = data.icon;
         
-        // Feed text explanations below
         document.getElementById('v-meta-romaji').innerText = `${romaji.toUpperCase()} • [ ${data.keyword} ]`;
         document.getElementById('v-meta-desc').innerHTML = `${data.desc}`;
 
-        // View Router Transitions
         document.getElementById('app-modal').classList.remove('hidden');
         document.getElementById('modal-content-results').classList.add('hidden');
         document.getElementById('modal-content-mnemonic').classList.remove('hidden');
@@ -431,7 +416,6 @@
         isModalOpen = false;
     }
 
-    /* Configuration Selection Engine */
     function selectSystem(system) {
         selectedSystem = system;
         document.getElementById('setup-title').innerText = system === 'hiragana' ? 'Hiragana Quiz Setup' : 'Katakana Quiz Setup';
@@ -466,7 +450,6 @@
         });
     }
 
-    /* Core Quiz processing engine loop rules */
     function startQuiz() {
         activeQuizDeck = [];
         const selectedCards = document.querySelectorAll('.column-card.selected');
