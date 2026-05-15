@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kana Master - Interactive Quiz</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { max-width: 600px; width: 100%; background: var(--card-bg); padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        h1 { text-align: center; margin-bottom: 20px; font-size: 28px; }
+        p.subtitle { text-align: center; color: #6b7280; margin-bottom: 30px; }
+        
+        /* Menu Screen */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .menu-btn { background: var(--card-bg); border: 2px solid var(--border); padding: 40px 20px; border-radius: 12px; font-size: 22px; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; }
+        .menu-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+        .menu-btn span { display: block; font-size: 45px; margin-bottom: 10px; }
+
+        /* Setup Screen & Chart Grid */
+        .section-title { font-size: 18px; font-weight: 600; margin: 20px 0 10px 0; border-bottom: 2px solid var(--border); padding-bottom: 5px; }
+        .group-grid { display: grid; grid-template-columns: repeat(auto-fill, min-max(100px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        @media(min-width: 400px) { .group-grid { grid-template-columns: repeat(3, 1fr); } }
+        .group-card { background: #f9fafb; border: 1px solid var(--border); padding: 12px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 14px; transition: 0.2s; font-weight: 500; }
+        .group-card.selected { background: #e0e7ff; border-color: var(--primary); color: var(--primary); }
+        .group-card span { display: block; font-size: 18px; margin-top: 4px; font-weight: bold; color: #4b5563; }
+        .group-card.selected span { color: var(--primary); }
+        .action-btn { background: var(--primary); color: white; border: none; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px; transition: 0.2s; }
+        .action-btn:hover { background: var(--primary-hover); }
+        .back-btn { background: none; border: none; color: #6b7280; cursor: pointer; font-size: 16px; margin-bottom: 15px; align-self: flex-start; display: flex; align-items: center; gap: 5px; }
+        .back-btn:hover { color: var(--text); }
+
+        /* Quiz Screen */
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; color: #6b7280; }
+        .char-display { font-size: 96px; font-weight: bold; text-align: center; margin: 30px 0; min-height: 130px; }
+        .input-wrapper { display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 14px; font-size: 18px; border: 2px solid var(--border); border-radius: 8px; outline: none; text-align: center; }
+        input[type="text"]:focus { border-color: var(--primary); }
+        .quiz-btn { background: var(--primary); color: white; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .feedback { text-align: center; margin-top: 20px; font-size: 20px; font-weight: bold; min-height: 30px; }
+        .feedback.correct { color: var(--success); }
+        .feedback.incorrect { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="screen-menu">
+        <h1>日本語 Kana Master</h1>
+        <p class="subtitle">Select a writing system to start practicing</p>
+        <div class="menu-grid">
+            <button class="menu-btn" onclick="selectSystem('hiragana')"><span>あ</span>Hiragana</button>
+            <button class="menu-btn" onclick="selectSystem('katakana')"><span>ア</span>Katakana</button>
+        </div>
+    </div>
+
+    <div id="screen-setup" class="hidden">
+        <button class="back-btn" onclick="showScreen('screen-menu')">← Back to Menu</button>
+        <h1 id="setup-title">Configure Quiz</h1>
+        <p class="subtitle" style="margin-bottom:15px;">Tap the groups you want to include in your session.</p>
+        
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="action-btn" style="margin:0; font-size:14px; padding:8px;" onclick="toggleAllGroups(true)">Select All</button>
+            <button class="action-btn" style="margin:0; font-size:14px; padding:8px; background:#e5e7eb; color:#374151;" onclick="toggleAllGroups(false)">Clear All</button>
+        </div>
+
+        <div style="overflow-y: auto; max-height: 450px; padding-right: 5px;">
+            <div class="section-title">Monographs (Basic)</div>
+            <div class="group-grid" id="grid-monographs"></div>
+
+            <div class="section-title">Monographs with Diacritics (Dakuten)</div>
+            <div class="group-grid" id="grid-diacritics"></div>
+
+            <div class="section-title">Digraphs (Compound Sounds)</div>
+            <div class="group-grid" id="grid-digraphs"></div>
+
+            <div class="section-title">Digraphs with Diacritics</div>
+            <div class="group-grid" id="grid-digraphs-diacritics"></div>
+        </div>
+
+        <button class="action-btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="screen-quiz" class="hidden">
+        <button class="back-btn" onclick="exitQuiz()">← Stop Quiz</button>
+        <div class="quiz-header">
+            <span id="quiz-type-label">Hiragana Quiz</span>
+            <span>Score: <b id="score-correct" style="color:var(--success)">0</b> / <b id="score-total">0</b></span>
+        </div>
+        <div class="char-display" id="target-char">?</div>
+        <form onsubmit="handleSubmission(event)">
+            <div class="input-wrapper">
+                <input type="text" id="quiz-input" placeholder="Type romaji..." autocomplete="off" autofocus>
+                <button type="submit" class="quiz-btn">Submit</button>
+            </div>
+        </form>
+        <div class="feedback" id="quiz-feedback"></div>
+    </div>
+</div>
+
+<script>
+    // System Data Bank
+    const dataset = {
+        monographs: [
+            { name: "A-Row", h: ["あ","い","う","え","お"], k: ["ア","イ","ウ","エ","オ"], r: ["a","i","u","e","o"] },
+            { name: "K-Row", h: ["か","き","く","け","こ"], k: ["カ","キ","ク","ケ","コ"], r: ["ka","ki","ku","ke","ko"] },
+            { name: "S-Row", h: ["さ","し","す","せ","そ"], k: ["サ","シ","ス","セ","ソ"], r: ["sa","shi","su","se","so"] },
+            { name: "T-Row", h: ["た","ち","つ","て","と"], k: ["タ","チ","ツ","テ","ト"], r: ["ta","chi","tsu","te","to"] },
+            { name: "N-Row", h: ["な","ニ","ぬ","ね","の"], k: ["ナ","ニ","ヌ","ネ","ノ"], r: ["na","ni","nu","ne","no"] },
+            { name: "H-Row", h: ["は","ひ","ふ","へ","ほ"], k: ["ハ","ヒ","フ","ヘ","ホ"], r: ["ha","hi","fu","he","ho"] },
+            { name: "M-Row", h: ["ま","み","む","め","も"], k: ["マ","ミ","ム","メ","モ"], r: ["ma","mi","mu","me","mo"] },
+            { name: "Y-Row", h: ["や","ゆ","よ"], k: ["ヤ","ユ","ヨ"], r: ["ya","yu","yo"] },
+            { name: "R-Row", h: ["ら","り","る","れ","ろ"], k: ["ラ","リ","ル","レ","ロ"], r: ["ra","ri","ru","re","ro"] },
+            { name: "W/N-Row", h: ["わ","を","ん"], k: ["ワ","ヲ","ン"], r: ["wa","wo","n"] }
+        ],
+        diacritics: [
+            { name: "G-Row (Ga)", h: ["が","ぎ","ぐ","げ","ご"], k: ["ガ","ギ","グ","ゲ","ゴ"], r: ["ga","gi","gu","ge","go"] },
+            { name: "Z-Row (Za)", h: ["ざ","じ","ず","ぜ","ぞ"], k: ["ザ","ジ","ズ","ゼ","ゾ"], r: ["za","ji","zu","ze","zo"] },
+            { name: "D-Row (Da)", h: ["だ","ぢ","づ","で","ど"], k: ["ダ","ヂ","ヅ","デ","ド"], r: ["da","ji","zu","de","do"] },
+            { name: "B-Row (Ba)", h: ["ば","び","ぶ","べ","ぼ"], k: ["バ","ビ","ブ","ベ","ボ"], r: ["ba","bi","bu","be","bo"] },
+            { name: "P-Row (Pa)", h: ["ぱ","ぴ","ぷ","ぺ","ぽ"], k: ["パ","ピ","プ","ペ","ポ"], r: ["pa","pi","pu","pe","po"] }
+        ],
+        digraphs: [
+            { name: "K-Digraphs", h: ["きゃ","きゅ","きょ"], k: ["キャ","キュ","キョ"], r: ["kya","kyu","kyo"] },
+            { name: "S-Digraphs", h: ["しゃ","しゅ","しょ"], k: ["シャ","シュ","ショ"], r: ["sha","shu","sho"] },
+            { name: "T-Digraphs", h: ["ちゃ","ちゅ","ちょ"], k: ["チャ","チュ","チョ"], r: ["cha","chu","cho"] },
+            { name: "N-Digraphs", h: ["にゃ","にゅ","にょ"], k: ["ニャ","ニュ","ニョ"], r: ["nya","nyu","nyo"] },
+            { name: "H-Digraphs", h: ["ひゃ","ひゅ","ひょ"], k: ["ヒャ","ヒュ","ヒョ"], r: ["hya","hyu","hyo"] },
+            { name: "M-Digraphs", h: ["みゃ","みゅ","みょ"], k: ["ミャ","ミュ","ミョ"], r: ["mya","myu","myo"] },
+            { name: "R-Digraphs", h: ["りゃ","りゅ","りょ"], k: ["リャ","リュ","リョ"], r: ["rya","ryu","ryo"] }
+        ],
+        digraphsDiacritics: [
+            { name: "G-Digraphs", h: ["ぎゃ","ぎゅ","ぎょ"], k: ["ギャ","ギュ","ギョ"], r: ["gya","gyu","gyo"] },
+            { name: "J-Digraphs", h: ["じゃ","じゅ","じょ"], k: ["ジャ","ジュ","ジョ"], r: ["ja","ju","jo"] },
+            { name: "B-Digraphs", h: ["びゃ","びゅ","びょ"], k: ["ビャ","ビュ","ビョ"], r: ["bya","byu","byo"] },
+            { name: "P-Digraphs", h: ["ぴゃ","ぴゅ","ぴょ"], k: ["ピャ","ピュ","ピョ"], r: ["pya","pyu","pyo"] }
+        ]
+    };
+
+    let selectedSystem = 'hiragana'; // 'hiragana' or 'katakana'
+    let activePool = [];
+    let currentQuizItem = null;
+    let score = { correct: 0, total: 0 };
+
+    function showScreen(screenId) {
+        document.getElementById('screen-menu').classList.add('hidden');
+        document.getElementById('screen-setup').classList.add('hidden');
+        document.getElementById('screen-quiz').classList.add('hidden');
+        document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function selectSystem(system) {
+        selectedSystem = system;
+        document.getElementById('setup-title').innerText = system === 'hiragana' ? 'Hiragana Setup' : 'Katakana Setup';
+        buildCharts();
+        showScreen('screen-setup');
+    }
+
+    function buildCharts() {
+        renderSection('grid-monographs', dataset.monographs);
+        renderSection('grid-diacritics', dataset.diacritics);
+        renderSection('grid-digraphs', dataset.digraphs);
+        renderSection('grid-digraphs-diacritics', dataset.digraphsDiacritics);
+    }
+
+    function renderSection(containerId, rows) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        rows.forEach((row, index) => {
+            const card = document.createElement('div');
+            card.className = 'group-card selected'; // Default to selected
+            card.dataset.type = containerId;
+            card.dataset.index = index;
+            
+            const sysKey = selectedSystem === 'hiragana' ? 'h' : 'k';
+            const sample = `${row.value = row[sysKey][0]}${row[sysKey][1] ? ',' + row[sysKey][1] : ''}...`;
+            
+            card.innerHTML = `${row.name} <span>${sample}</span>`;
+            card.onclick = () => card.classList.toggle('selected');
+            container.appendChild(card);
+        });
+    }
+
+    function toggleAllGroups(selectTrue) {
+        document.querySelectorAll('.group-card').forEach(card => {
+            if (selectTrue) card.classList.add('selected');
+            else card.classList.remove('selected');
+        });
+    }
+
+    function startQuiz() {
+        activePool = [];
+        const cards = document.querySelectorAll('.group-card.selected');
+        
+        cards.forEach(card => {
+            const type = card.dataset.type;
+            const index = parseInt(card.dataset.index);
+            let rowData;
+            
+            if (type === 'grid-monographs') rowData = dataset.monographs[index];
+            if (type === 'grid-diacritics') rowData = dataset.diacritics[index];
+            if (type === 'grid-digraphs') rowData = dataset.digraphs[index];
+            if (type === 'grid-digraphs-diacritics') rowData = dataset.digraphsDiacritics[index];
+
+            const sysKey = selectedSystem === 'hiragana' ? 'h' : 'k';
+            rowData[sysKey].forEach((char, i) => {
+                activePool.push({ character: char, romaji: rowData.r[i] });
+            });
+        });
+
+        if (activePool.length === 0) {
+            alert("Please select at least one character row to quiz!");
+            return;
+        }
+
+        score = { correct: 0, total: 0 };
+        document.getElementById('score-correct').innerText = 0;
+        document.getElementById('score-total').innerText = 0;
+        document.getElementById('quiz-type-label').innerText = `${selectedSystem.toUpperCase()} QUIZ`;
+        
+        showScreen('screen-quiz');
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        document.getElementById('quiz-feedback').innerText = '';
+        document.getElementById('quiz-input').value = '';
+        
+        const randomIndex = Math.floor(Math.random() * activePool.length);
+        currentQuizItem = activePool[randomIndex];
+        
+        document.getElementById('target-char').innerText = currentQuizItem.character;
+        document.getElementById('quiz-input').focus();
+    }
+
+    function handleSubmission(event) {
+        event.preventDefault();
+        const inputField = document.getElementById('quiz-input');
+        const userInput = inputField.value.trim().toLowerCase();
+        const feedback = document.getElementById('quiz-feedback');
+
+        if (!userInput || feedback.innerText !== '') return; 
+
+        score.total++;
+        if (userInput === currentQuizItem.romaji) {
+            score.correct++;
+            feedback.innerText = "Correct! 🎉";
+            feedback.className = "feedback correct";
+        } else {
+            feedback.innerText = `Incorrect! Answer: ${currentQuizItem.romaji}`;
+            feedback.className = "feedback incorrect";
+        }
+
+        document.getElementById('score-correct').innerText = score.correct;
+        document.getElementById('score-total').innerText = score.total;
+
+        setTimeout(nextQuestion, 1300);
+    }
+
+    function exitQuiz() {
+        showScreen('screen-setup');
+    }
+</script>
+
+</body>
+</html>
