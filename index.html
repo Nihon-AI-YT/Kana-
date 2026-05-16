@@ -3,568 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kana Master - Visual Overlay Edition</title>
+    <title>NihonAI - Kana Mastery Pad</title>
     <style>
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
-            --success: #10b981;
-            --danger: #f43f5e;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #0f172a;
+            --secondary: #f1f5f9;
+            --secondary-hover: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
             --border: #e2e8f0;
+            --bg-app: #f8fafc;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { max-width: 950px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-        .hidden { display: none !important; }
-        
-        h1 { text-align: center; margin-bottom: 8px; font-size: 32px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px; }
-        p.subtitle { text-align: center; color: #64748b; margin-bottom: 35px; font-size: 16px; }
-        
-        /* Menu Screen */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
-        .menu-btn { background: var(--card-bg); border: 2px solid var(--border); padding: 35px 20px; border-radius: 16px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .menu-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-3px); box-shadow: 0 12px 20px -8px rgba(99, 102, 241, 0.15); }
-        .menu-btn span { display: block; font-size: 48px; margin-bottom: 12px; }
 
-        /* Back Buttons */
-        .back-btn { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; margin-bottom: 25px; align-self: flex-start; display: flex; align-items: center; gap: 8px; font-weight: 600; }
-        .back-btn:hover { color: var(--text); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-        /* Chart Styles */
-        .chart-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .toggle-container { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 6px 12px; border-radius: 30px; font-weight: 600; font-size: 14px; color: #475569; }
-        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(18px); }
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-dark);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-        .charts-container { display: grid; grid-template-columns: 1fr; gap: 30px; }
-        @media (min-width: 850px) { .charts-container { grid-template-columns: 1.2fr 0.8fr; } }
-        .chart-section h3 { font-size: 15px; margin-bottom: 14px; color: #475569; border-bottom: 2px solid var(--border); padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .chart-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 30px; }
-        .chart-grid.digraphs-layout { grid-template-columns: repeat(3, 1fr); }
-        
-        .chart-cell { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px 4px; text-align: center; transition: all 0.2s; position: relative; cursor: pointer; }
-        .chart-cell:hover { background: #fff; border-color: var(--primary); transform: scale(1.03); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .chart-cell .jp { font-size: 26px; font-weight: 700; color: #1e293b; line-height: 1.2; }
-        .chart-cell .rm { font-size: 13px; color: #94a3b8; font-weight: 600; margin-top: 2px; }
-        .chart-cell .mnemonic-hint { display: block; font-size: 11px; color: #6366f1; font-weight: 500; margin-top: 4px; background: #e0e7ff; padding: 2px 4px; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .chart-cell.empty { background: transparent; border: none; pointer-events: none; }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
 
-        /* Setup / Column Selection View */
-        .setup-section-title { font-size: 14px; font-weight: 700; color: #475569; margin: 25px 0 12px 0; text-transform: uppercase; letter-spacing: 0.75px; }
-        .column-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 12px; margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid var(--border); }
-        .column-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.15s ease; position: relative; user-select: none; }
-        .column-card:hover { border-color: #cbd5e1; transform: translateY(-1px); }
-        .column-card.selected { border-color: var(--primary); background: #f5f3ff; }
-        .column-preview { display: flex; flex-direction: column; align-items: center; font-size: 18px; font-weight: 700; color: #1e293b; }
-        .column-preview span { font-size: 12px; color: #64748b; font-weight: 500; margin-top: 2px; }
-        .checkbox-custom { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: white; }
-        .column-card.selected .checkbox-custom { background: var(--primary); border-color: var(--primary); }
-        .column-card.selected .checkbox-custom::after { content: '✓'; color: white; font-size: 12px; font-weight: bold; }
-        
-        .control-row { display: flex; gap: 12px; margin-bottom: 20px; }
-        .util-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: white; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; color: #475569; }
-        .action-btn { background: var(--primary); color: white; border: none; padding: 16px; font-size: 18px; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2); }
-        .action-btn:hover { background: var(--primary-hover); }
-        
-        /* Quiz Screen */
-        .quiz-container { max-width: 500px; margin: 0 auto; width: 100%; }
-        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 14px; color: #64748b; font-weight: 600; }
-        .char-display { font-size: 108px; font-weight: 800; text-align: center; margin: 20px 0; min-height: 140px; color: #0f172a; }
-        .input-wrapper { display: flex; gap: 12px; }
-        input[type="text"] { flex: 1; padding: 16px; font-size: 20px; font-weight: 600; border: 2px solid var(--border); border-radius: 12px; outline: none; text-align: center; transition: all 0.2s; background: #f8fafc; }
-        input[type="text"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-        .quiz-btn { background: var(--primary); color: white; border: none; padding: 16px 30px; font-size: 18px; font-weight: 700; border-radius: 12px; cursor: pointer; }
-        .feedback { text-align: center; margin-top: 25px; font-size: 22px; font-weight: 700; min-height: 32px; }
-        .feedback.correct { color: var(--success); }
-        .feedback.incorrect { color: var(--danger); }
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
 
-        /* Global Modal Overlay */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
-        .modal-box { background: white; padding: 35px; border-radius: 24px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center; max-height: 85vh; display: flex; flex-direction: column; animation: modalIn 0.2s ease-out; }
-        @keyframes modalIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
 
-        /* Split-Screen Visual Mnemonic Overlay Card Layout */
-        .visual-split-card { display: flex; background: #1e293b; border-radius: 16px; overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; height: 240px; }
-        .visual-left { flex: 1; background: #2b394e; display: flex; align-items: center; justify-content: center; font-size: 110px; font-weight: 700; color: #ffffff; position: relative; }
-        .visual-right { flex: 1; background: #ffffff; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .bg-mnemonic-graphic { font-size: 140px; opacity: 0.28; position: absolute; z-index: 1; user-select: none; display: flex; align-items: center; justify-content: center; filter: grayscale(10%); }
-        .fg-character-trace { font-size: 110px; font-weight: 800; color: #0f172a; position: relative; z-index: 2; user-select: none; line-height: 1; }
-        .visual-meta-title { font-size: 24px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-        .visual-meta-desc { font-size: 15px; color: #64748b; font-weight: 600; margin: 4px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4; padding: 0 10px; }
-        .visual-meta-desc span { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; color: var(--primary); font-weight: 700; }
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
 
-        .wrong-list-container { text-align: left; background: #fff1f2; border: 1px solid #ffe4e6; border-radius: 12px; padding: 16px; margin: 15px 0; overflow-y: auto; max-height: 200px; }
-        .wrong-list-title { font-weight: 700; color: var(--danger); font-size: 14px; margin-bottom: 8px; text-transform: uppercase; }
-        .wrong-item { font-size: 14px; margin-bottom: 6px; color: #9f1239; display: inline-block; background: white; padding: 4px 10px; border-radius: 6px; border: 1px solid #fecdd3; }
-        .modal-actions { display: flex; gap: 14px; margin-top: 10px; }
-        .modal-btn { flex: 1; padding: 14px; font-weight: 700; border-radius: 12px; cursor: pointer; border: none; font-size: 16px; }
-        .modal-btn.primary { background: var(--primary); color: white; }
-        .modal-btn.secondary { background: #f1f5f9; color: #475569; }
+        /* Navigation Tabs Control Menu */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: var(--secondary);
+            color: var(--text-dark);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* Chart Layout System Styles */
+        .chart-section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 25px 0 15px 0;
+            color: var(--text-dark);
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .char-card {
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+            user-select: none;
+        }
+
+        .char-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.02);
+        }
+
+        .char-card .kana {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: block;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .char-card .romaji {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: lowercase;
+        }
+
+        /* Quiz Config Deck Selector Elements */
+        .quiz-setup-box {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .quiz-setup-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .quiz-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .quiz-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Interactive Modal Box Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+            opacity: 0;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            animation: modalScaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalScaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Tracing Pad Canvas Box Elements */
+        .canvas-container {
+            position: relative;
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            width: 100%;
+            height: 320px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        #tracingCanvas {
+            background: #ffffff;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.15s ease;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .modal-btn.primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--secondary);
+            color: var(--text-dark);
+        }
+
+        .modal-btn.secondary:hover {
+            background-color: var(--secondary-hover);
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="screen-menu">
-        <h1>日本語 Kana Master</h1>
-        <p class="subtitle">Select an options chart or customize an exercise quiz</p>
-        <div class="menu-grid">
-            <button class="menu-btn" onclick="openChart('hiragana')"><span>あ</span>Hiragana Chart</button>
-            <button class="menu-btn" onclick="selectSystem('hiragana')"><span>✍️</span>Hiragana Quiz</button>
-            <button class="menu-btn" onclick="openChart('katakana')"><span>ア</span>Katakana Chart</button>
-            <button class="menu-btn" onclick="selectSystem('katakana')"><span>🧠</span>Katakana Quiz</button>
-        </div>
-    </div>
+    <header>
+        <h1>NihonAI Mastery Pad</h1>
+        <p>Explore syllabary structures dynamically and perfect character strokes with our interactive live trace pad.</p>
+    </header>
 
-    <div id="screen-chart" class="hidden">
-        <div class="chart-header-row">
-            <button class="back-btn" onclick="showScreen('screen-menu')" style="margin-bottom:0;">← Back to Menu</button>
-            <div class="toggle-container" id="mnemonic-toggle-wrapper">
-                <span>💡 Show Memory Anchors</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-mnemonic-view" onchange="handleMnemonicToggle()">
-                    <span class="slider"></span>
-                </label>
+    <main class="main-container">
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchMode('hiragana')">Hiragana Chart</button>
+            <button class="tab-btn" onclick="switchMode('katakana')">Katakana Chart</button>
+            <button class="tab-btn" onclick="switchMode('quiz')">Interactive Quiz</button>
+        </nav>
+
+        <section id="panel-hiragana" class="view-panel active">
+            <h3 class="chart-section-title">Monographs (Seion)</h3>
+            <div class="character-grid" id="grid-h-monographs"></div>
+            <h3 class="chart-section-title">Diacritics (Dakuon)</h3>
+            <div class="character-grid" id="grid-h-diacritics"></div>
+        </section>
+
+        <section id="panel-katakana" class="view-panel">
+            <h3 class="chart-section-title">Monographs (Seion)</h3>
+            <div class="character-grid" id="grid-k-monographs"></div>
+            <h3 class="chart-section-title">Diacritics (Dakuon)</h3>
+            <div class="character-grid" id="grid-k-diacritics"></div>
+        </section>
+
+        <section id="panel-quiz" class="view-panel">
+            <div class="quiz-setup-box">
+                <h3>Test Your Visual Memory</h3>
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Challenge your kana processing skills in a fast-paced spelling recall array.</p>
+                <button class="quiz-btn" onclick="alert('Quiz system processing initialization...')">Launch Kana Quiz</button>
             </div>
-        </div>
-        <h1 id="chart-main-title">Hiragana Chart</h1>
-        <p class="subtitle" id="chart-subtitle">Visual master reference sheet. Click any card to view its anchor guide.</p>
+        </section>
+    </main>
+
+    <div class="modal-overlay hidden" id="app-modal" onclick="handleOutsideModalClick(event)">
         
-        <div class="charts-container">
-            <div class="chart-section">
-                <h3>Monographs</h3>
-                <div class="chart-grid" id="chart-view-monographs"></div>
-                <h3>Digraphs</h3>
-                <div class="chart-grid digraphs-layout" id="chart-view-digraphs"></div>
+        <div class="modal-box" id="modal-content-mnemonic">
+            <h2 id="v-meta-romaji" style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px;">ROMAJI: A</h2>
+            <p style="color: var(--text-muted); font-size: 13px;">Follow the gray layout template to complete the stroke balance.</p>
+
+            <div class="canvas-container">
+                <canvas id="tracingCanvas" width="360" height="320"></canvas>
             </div>
-            <div class="chart-section">
-                <h3>Monographs with Diacritics</h3>
-                <div class="chart-grid" id="chart-view-diacritics"></div>
-                <h3>Digraphs with Diacritics</h3>
-                <div class="chart-grid digraphs-layout" id="chart-view-digraphs-diacritics"></div>
-            </div>
-        </div>
-    </div>
 
-    <div id="screen-setup" class="hidden">
-        <button class="back-btn" onclick="showScreen('screen-menu')">← Back to Menu</button>
-        <h1 id="setup-title">Configure Quiz</h1>
-        <p class="subtitle">Check specific vertical groups to compile your customizable practice deck.</p>
-        
-        <div class="control-row">
-            <button class="util-btn" onclick="toggleAllGroups(true)">Check All</button>
-            <button class="util-btn" onclick="toggleAllGroups(false)">Uncheck All</button>
-        </div>
-
-        <div style="overflow-y: auto; max-height: 50vh; padding-right: 5px;">
-            <div class="setup-section-title">Monographs</div>
-            <div class="column-selection-grid" id="select-monographs"></div>
-            <div class="setup-section-title">Monographs with Diacritics</div>
-            <div class="column-selection-grid" id="select-diacritics"></div>
-            <div class="setup-section-title">Digraphs</div>
-            <div class="column-selection-grid" id="select-digraphs"></div>
-            <div class="setup-section-title">Digraphs with Diacritics</div>
-            <div class="column-selection-grid" id="select-digraphs-diacritics"></div>
-        </div>
-        <button class="action-btn" onclick="startQuiz()">Start Quiz</button>
-    </div>
-
-    <div id="screen-quiz" class="hidden">
-        <div class="quiz-container">
-            <button class="back-btn" onclick="exitQuiz()">← Stop Quiz</button>
-            <div class="quiz-header">
-                <span id="quiz-type-label">HIRAGANA QUIZ</span>
-                <span>Progress: <b id="score-total" style="color:var(--primary)">0</b> / <b id="score-max">0</b></span>
-            </div>
-            <div class="char-display" id="target-char">?</div>
-            <form onsubmit="handleSubmission(event)">
-                <div class="input-wrapper">
-                    <input type="text" id="quiz-input" placeholder="Type romaji..." autocomplete="off" autofocus>
-                    <button type="submit" class="quiz-btn">Submit</button>
-                </div>
-            </form>
-            <div class="feedback" id="quiz-feedback"></div>
-        </div>
-    </div>
-</div>
-
-<div id="app-modal" class="modal-overlay hidden">
-    <div class="modal-box hidden" id="modal-content-results">
-        <h2>Quiz Completed!</h2>
-        <p style="color: #64748b; font-size: 15px;">Your overall accuracy metrics</p>
-        <div class="modal-score" id="modal-score-text">0 <span>/ 0</span></div>
-        <div class="wrong-list-container hidden" id="modal-errors-box">
-            <div class="wrong-list-title">Review Incorrect Matches:</div>
-            <div id="modal-wrong-items"></div>
-        </div>
-        <div class="modal-actions">
-            <button class="modal-btn secondary" onclick="closeModalToMenu()">Main Menu</button>
-            <button class="modal-btn primary" onclick="restartQuizDeck()">Try Again</button>
-        </div>
-    </div>
-
-    <div class="modal-box hidden" id="modal-content-mnemonic">
-        <div class="visual-split-card">
-            <div class="visual-left" id="v-panel-char">け</div>
-            
-            <div class="visual-right">
-                <div class="bg-mnemonic-graphic" id="v-panel-bg-emoji">🛢️</div>
-                <div class="fg-character-trace" id="v-panel-fg-char">け</div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="clearTracingCanvas()">Clear Pad</button>
+                <button class="modal-btn primary" onclick="closeMnemonicModal()">Done</button>
             </div>
         </div>
-        
-        <div class="visual-meta-title" id="v-meta-romaji">KEG</div>
-        <div class="visual-meta-desc" id="v-meta-desc">Looks like a <span>KE</span>g of beer</div>
-
-        <div class="modal-actions">
-            <button class="modal-btn primary" onclick="closeMnemonicModal()">Got It!</button>
-        </div>
     </div>
-</div>
 
-<script>
-    const dataset = {
-        monographs: [
-            { name: "a", h: ["あ","い","う","え","お"], k: ["ア","イ","ウ","エ","オ"], r: ["a","i","u","e","o"] },
-            { name: "ka", h: ["か","き","く","け","こ"], k: ["カ","キ","ク","ケ","コ"], r: ["ka","ki","ku","ke","ko"] },
-            { name: "sa", h: ["さ","し","す","せ","そ"], k: ["サ","シ","ス","セ","ソ"], r: ["sa","shi","su","se","so"] },
-            { name: "ta", h: ["た","ち","つ","て","と"], k: ["タ","チ","ツ","テ","ト"], r: ["ta","chi","tsu","te","to"] },
-            { name: "na", h: ["な","に","ぬ","ね","の"], k: ["ナ","ニ","ヌ","ネ","ノ"], r: ["na","ni","nu","ne","no"] },
-            { name: "ha", h: ["は","ひ","ふ","へ","ほ"], k: ["ハ","ヒ","フ","ヘ","ホ"], r: ["ha","hi","fu","he","ho"] },
-            { name: "ma", h: ["ま","み","む","め","も"], k: ["マ","ミ","ム","メ","モ"], r: ["ma","mi","mu","me","mo"] },
-            { name: "ya", h: ["や","","ゆ","","よ"], k: ["ヤ","","ユ","","ヨ"], r: ["ya","","yu","","yo"] },
-            { name: "ra", h: ["ら","り","る","れ","ろ"], k: ["ラ","リ","レ","ロ","ロ"], r: ["ra","ri","ru","re","ro"] },
-            { name: "wa", h: ["わ","","","","を"], k: ["ワ","","","","ヲ"], r: ["wa","","","","wo"] },
-            { name: "n", h: ["ん","","","",""], k: ["ン","","","",""], r: ["n","","","",""] }
-        ],
-        diacritics: [
-            { name: "ga", h: ["が","ぎ","ぐ","げ","ご"], k: ["ガ","ギ","グ","ゲ","ゴ"], r: ["ga","gi","gu","ge","go"] },
-            { name: "za", h: ["ざ","じ","ず","ぜ","ぞ"], k: ["ザ","ジ","ズ","ぜ","ぞ"], r: ["za","ji","zu","ze","zo"] },
-            { name: "da", h: ["だ","ぢ","づ","で","ど"], k: ["ダ","ヂ","ヅ","デ","ド"], r: ["da","ji","zu","de","do"] },
-            { name: "ba", h: ["ば","び","ぶ","べ","ぼ"], k: ["バ","び","ブ","ベ","ボ"], r: ["ba","bi","bu","be","bo"] },
-            { name: "pa", h: ["ぱ","ぴ","ぷ","ぺ","ぽ"], k: ["パ","ピ","プ","ペ","ポ"], r: ["pa","pi","pu","pe","po"] }
-        ],
-        digraphs: [
-            { name: "kya", h: ["きゃ","きゅ","きょ"], k: ["キャ","キュ","キョ"], r: ["kya","kyu","kyo"] },
-            { name: "sha", h: ["しゃ","しゅ","しょ"], k: ["シャ","シュ","ショ"], r: ["sha","shu","sho"] },
-            { name: "cha", h: ["ちゃ","ちゅ","ちょ"], k: ["チャ","チュ","チョ"], r: ["cha","chu","cho"] },
-            { name: "nya", h: ["にゃ","にゅ","にょ"], k: ["ニャ","ニュ","ニョ"], r: ["nya","nyu","nyo"] },
-            { name: "hya", h: ["ひゃ","ひゅ","ひょ"], k: ["ヒャ","ヒュ","ヒョ"], r: ["hya","hyu","hyo"] },
-            { name: "mya", h: ["みゃ","みゅ","みょ"], k: ["ミャ","ミュ","ミョ"], r: ["mya","myu","myo"] },
-            { name: "rya", h: ["りゃ","りゅ","りょ"], k: ["リャ","リュ","リョ"], r: ["rya","ryu","ryo"] }
-        ],
-        digraphsDiacritics: [
-            { name: "gya", h: ["ぎゃ","ぎゅ","ぎょ"], k: ["ギャ","ギュ","ギョ"], r: ["gya","gyu","gyo"] },
-            { name: "ja", h: ["じゃ","じゅ","じょ"], k: ["ジャ","ジュ","ジョ"], r: ["ja","ju","jo"] },
-            { name: "bya", h: ["びゃ","びゅ","びょ"], k: ["ビャ","ビュ","ビョ"], r: ["bya","byu","byo"] },
-            { name: "pya", h: ["ぴゃ","ぴゅ","ぴょ"], k: ["ピャ","ピュ","ピョ"], r: ["pya","pya","pyo"] }
-        ]
-    };
+    <script>
+        // Character Dataset Definition Arrays Maps
+        const hMonographs = [
+            { c: "あ", r: "a" }, { c: "い", r: "i" }, { c: "う", r: "u" }, { c: "え", r: "e" }, { c: "お", r: "o" },
+            { c: "か", r: "ka" }, { c: "き", r: "ki" }, { c: "く", r: "ku" }, { c: "け", r: "ke" }, { c: "こ", r: "ko" },
+            { c: "さ", r: "sa" }, { c: "し", r: "shi" }, { c: "す", r: "su" }, { c: "せ", r: "se" }, { c: "そ", r: "so" },
+            { c: "た", r: "ta" }, { c: "ち", r: "chi" }, { c: "つ", r: "tsu" }, { c: "て", r: "te" }, { c: "と", r: "to" },
+            { c: "な", r: "na" }, { c: "に", r: "ni" }, { c: "ぬ", r: "nu" }, { c: "ね", r: "ne" }, { c: "の", r: "no" },
+            { c: "は", r: "ha" }, { c: "ひ", r: "hi" }, { c: "ふ", r: "fu" }, { c: "へ", r: "he" }, { c: "ほ", r: "ho" },
+            { c: "ま", r: "ma" }, { c: "み", r: "mi" }, { c: "む", r: "mu" }, { c: "め", r: "me" }, { c: "mo", r: "mo" },
+            { c: "や", r: "ya" }, { c: "", r: "" },   { c: "ゆ", r: "yu" }, { c: "", r: "" },   { c: "よ", r: "yo" },
+            { c: "ら", r: "ra" }, { c: "り", r: "ri" }, { c: "る", r: "ru" }, { c: "れ", r: "re" }, { c: "ろ", r: "ro" },
+            { c: "わ", r: "wa" }, { c: "", r: "" },   { c: "", r: "" },   { c: "", r: "" },   { c: "を", r: "wo" },
+            { c: "ん", r: "n" }
+        ];
 
-    // The full comprehensive 46 character database mapping logic
-    const hiraganaMnemonics = {
-        "あ": { icon: "🍎", desc: "Shaped like a round apple with a stem", keyword: "Apple" },
-        "い": { icon: "👀", desc: "Two eyes looking directly at you", keyword: "Eyes" },
-        "う": { icon: "🥊", desc: "Bent over from being punched in the stomach", keyword: "Ouch!" },
-        "え": { icon: "🥷", desc: "An energetic ninja striking a combat stance", keyword: "Ninja" },
-        "お": { icon: "🛸", desc: "A UFO spacecraft flying smoothly", keyword: "UFO" },
-        "か": { icon: "🔪", desc: "A sharp blade cutting an object", keyword: "Cutting" },
-        "き": { icon: "🔑", desc: "Looks exactly like a physical key", keyword: "Key" },
-        "く": { icon: "🐦", desc: "The open beak of a singing Cuckoo bird", keyword: "Cuckoo" },
-        "け": { icon: "🛢️", desc: "Looks exactly like a barrel keg of beer", keyword: "Keg" },
-        "こ": { icon: "🐟", desc: "Two koi fish swimming along parallel lines", keyword: "Koi" },
-        "さ": { icon: "😟", desc: "A sad face missing its final smile line", keyword: "Sad Face" },
-        "し": { icon: "🎣", desc: "A simple curved fishing hook structure", keyword: "Hook" },
-        "す": { icon: "🔫", desc: "A defensive gun protected in a glass case", keyword: "Gun" },
-        "せ": { icon: "🗣️", desc: "A profile view of a mouth talking out loud", keyword: "Talking" },
-        "そ": { icon: "🧵", desc: "A sharp zigzag sewing thread pattern", keyword: "Sewing" },
-        "た": { icon: "✝️", desc: "Forms the direct letters 't' and 'a'", keyword: "ta" },
-        "ち": { icon: "😡", desc: "An angry cheerleader throwing her arms out", keyword: "Cheer" },
-        "つ": { icon: "🌊", desc: "A huge tsunami wave cresting forward", keyword: "Tsunami" },
-        "て": { icon: "🐕", desc: "The curled, waving tail of a dog", keyword: "Tail" },
-        "と": { icon: "🌪️", desc: "A swirling funnel vortex tornado storm", keyword: "Tornado" },
-        "な": { icon: "🥜", desc: "A complex, knotty peanut shell wrapper", keyword: "Nut" },
-        "ni": { icon: "🦵", desc: "The side profile of a human knee joint", keyword: "Knee" },
-        "に": { icon: "🦵", desc: "The side profile of a human knee joint", keyword: "Knee" },
-        "ぬ": { icon: "🍜", desc: "Two chopsticks picking noodles out of a bowl", keyword: "Noodle" },
-        "ね": { icon: "🐌", desc: "A small snail hiding with a looped tail shell", keyword: "Snail" },
-        "の": { icon: "🚫", desc: "A standard red universal prohibition sign", keyword: "NO" },
-        "は": { icon: "🔤", desc: "Combines the shapes of an 'H' and an 'a'", keyword: "Ha" },
-        "ひ": { icon: "😊", desc: "A wide, upturned happy smiling human mouth", keyword: "Happy" },
-        "fu": { icon: "🗻", desc: "The balanced slopes of Mount Fuji", keyword: "Fuji" },
-        "ふ": { icon: "🗻", desc: "The balanced slopes of Mount Fuji", keyword: "Fuji" },
-        "へ": { icon: "⬆️", desc: "An arrowhead pointing up towards a peak", keyword: "Heave" },
-        "ほ": { icon: "🐴", desc: "The long vertical profile lines of a horse snout", keyword: "Horse" },
-        "ま": { icon: "😷", desc: "A responsible man wearing a sanitary face mask", keyword: "Mask" },
-        "み": { icon: "🎵", desc: "Looks completely like a looping musical note", keyword: "Music" },
-        "む": { icon: "🐄", desc: "A cow standing profiles and bellowing moo", keyword: "Moo" },
-        "め": { icon: "🍜", desc: "A messy pile of dropped, tangled noodles", keyword: "Mess" },
-        "mo": { icon: "🦎", desc: "The long curved tail of a monitor lizard", keyword: "Monitor" },
-        "も": { icon: "🦎", desc: "The long curved tail of a monitor lizard", keyword: "Monitor" },
-        "ら": { icon: "🐰", desc: "A sitting rabbit with ears perkily raised", keyword: "Rabbit" },
-        "り": { icon: "🌊", desc: "Two distinct tracks of a flowing river bed", keyword: "River" },
-        "る": { icon: "💎", desc: "A hand securely holding a precious ruby loop", keyword: "Ruby" },
-        "れ": { icon: "🦌", desc: "A leaping reindeer kicking its leg out", keyword: "Reindeer" },
-        "ろ": { icon: "❌", desc: "The ruby is gone because it was robbed!", keyword: "Robbed" },
-        "や": { icon: "🐃", desc: "The broad skull and horns of a wild yak", keyword: "Yak" },
-        "ゆ": { icon: "🦄", desc: "The magical running silhouette of a unicorn", keyword: "Unicorn" },
-        "よ": { icon: "🪀", desc: "A playful yo-yo wrapping around its finger string", keyword: "Yo-Yo" },
-        "わ": { icon: " Swan profile sitting gracefully on flat water", keyword: "Swan" },
-        "を": { icon: "🧱", desc: "A heavy boot kicking a sharp crack in a wall", keyword: "Wall" },
-        "ん": { icon: "🔤", desc: "Looks exactly like a script lowercase 'n'", keyword: "n" }
-    };
+        const hDiacritics = [
+            { c: "が", r: "ga" }, { c: "ぎ", r: "gi" }, { c: "ぐ", r: "gu" }, { c: "げ", r: "ge" }, { c: "ご", r: "go" },
+            { c: "ざ", r: "za" }, { c: "じ", r: "ji" }, { c: "ず", r: "zu" }, { c: "ぜ", r: "ze" }, { c: "ぞ", r: "zo" },
+            { c: "だ", r: "da" }, { c: "ぢ", r: "ji" }, { c: "づ", r: "zu" }, { c: "で", r: "de" }, { c: "ど", r: "do" },
+            { c: "ば", r: "ba" }, { c: "び", r: "bi" }, { c: "ぶ", r: "bu" }, { c: "べ", r: "be" }, { c: "ぼ", r: "bo" },
+            { c: "ぱ", r: "pa" }, { c: "ぴ", r: "pi" }, { c: "ぷ", r: "pu" }, { c: "ぺ", r: "pe" }, { c: "ぽ", r: "po" }
+        ];
 
-    const alternateRomajiMap = { 'shi': 'si', 'si': 'shi', 'tsu': 'tu', 'tu': 'tsu', 'chi': 'ti', 'ti': 'chi', 'ji': 'zi', 'zi': 'ji', 'fu': 'hu', 'hu': 'fu' };
+        const kMonographs = [
+            { c: "ア", r: "a" }, { c: "イ", r: "i" }, { c: "ウ", r: "u" }, { c: "エ", r: "e" }, { c: "オ", r: "o" },
+            { c: "カ", r: "ka" }, { c: "キ", r: "ki" }, { c: "ク", r: "ku" }, { c: "ケ", r: "ke" }, { c: "コ", r: "ko" },
+            { c: "サ", r: "sa" }, { c: "シ", r: "shi" }, { c: "ス", r: "su" }, { c: "セ", r: "se" }, { c: "ソ", r: "so" },
+            { c: "タ", r: "ta" }, { c: "チ", r: "chi" }, { c: "ツ", r: "tsu" }, { c: "テ", r: "te" }, { c: "ト", r: "to" },
+            { c: "ナ", r: "na" }, { c: "ニ", r: "ni" }, { c: "ヌ", r: "nu" }, { c: "ネ", r: "ne" }, { c: "ノ", r: "no" },
+            { c: "ハ", r: "ha" }, { c: "ヒ", r: "hi" }, { c: "フ", r: "fu" }, { c: "ヘ", r: "he" }, { c: "ホ", r: "ho" },
+            { c: "マ", r: "ma" }, { c: "ミ", r: "mi" }, { c: "ム", r: "mu" }, { c: "メ", r: "me" }, { c: "モ", r: "mo" },
+            { c: "ヤ", r: "ya" }, { c: "", r: "" },   { c: "ユ", r: "yu" }, { c: "", r: "" },   { c: "ヨ", r: "yo" },
+            { c: "ラ", r: "ra" }, { c: "リ", r: "ri" }, { c: "ル", r: "ru" }, { c: "レ", r: "re" }, { c: "ロ", r: "ro" },
+            { c: "ワ", r: "wa" }, { c: "", r: "" },   { c: "", r: "" },   { c: "", r: "" },   { c: "ヲ", r: "wo" },
+            { c: "ン", r: "n" }
+        ];
 
-    let selectedSystem = 'hiragana'; 
-    let activeQuizDeck = [];
-    let currentQuizIndex = 0;
-    let quizHistory = { correct: 0, wrongItems: [] };
-    let isModalOpen = false;
+        const kDiacritics = [
+            { c: "ガ", r: "ga" }, { c: "ギ", r: "gi" }, { c: "グ", r: "gu" }, { c: "ゲ", r: "ge" }, { c: "ゴ", r: "go" },
+            { c: "ザ", r: "za" }, { c: "ジ", r: "ji" }, { c: "ズ", r: "zu" }, { c: "ゼ", r: "ze" }, { c: "ゾ", r: "zo" },
+            { c: "ダ", r: "da" }, { c: "ヂ", r: "ji" }, { c: "ズ", r: "zu" }, { c: "デ", r: "de" }, { c: "ド", r: "do" },
+            { c: "バ", r: "ba" }, { c: "ビ", r: "bi" }, { c: "ブ", r: "bu" }, { r: "be", c: "ベ" }, { c: "ボ", r: "bo" },
+            { c: "パ", r: "pa" }, { c: "ピ", r: "pi" }, { c: "プ", r: "pu" }, { c: "ペ", r: "pe" }, { c: "ポ", r: "po" }
+        ];
 
-    function showScreen(screenId) {
-        document.getElementById('screen-menu').classList.add('hidden');
-        document.getElementById('screen-chart').classList.add('hidden');
-        document.getElementById('screen-setup').classList.add('hidden');
-        document.getElementById('screen-quiz').classList.add('hidden');
-        document.getElementById(screenId).classList.remove('hidden');
-    }
+        // Canvas Sketchpad System States
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let canvas, ctx;
+        let currentTracingChar = "";
+        let isModalOpen = false;
 
-    function openChart(system) {
-        selectedSystem = system;
-        document.getElementById('chart-main-title').innerText = system === 'hiragana' ? 'Hiragana Chart' : 'Katakana Chart';
-        
-        const toggleWrapper = document.getElementById('mnemonic-toggle-wrapper');
-        if (system === 'hiragana') toggleWrapper.classList.remove('hidden');
-        else {
-            toggleWrapper.classList.add('hidden');
-            document.getElementById('toggle-mnemonic-view').checked = false;
-        }
+        // Dom Load Initializer lifecycle hooks
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGrid(hMonographs, 'grid-h-monographs');
+            renderGrid(hDiacritics, 'grid-h-diacritics');
+            renderGrid(kMonographs, 'grid-k-monographs');
+            renderGrid(kDiacritics, 'grid-k-diacritics');
 
-        renderChartSection('chart-view-monographs', dataset.monographs);
-        renderChartSection('chart-view-diacritics', dataset.diacritics);
-        renderChartSection('chart-view-digraphs', dataset.digraphs);
-        renderChartSection('chart-view-digraphs-diacritics', dataset.digraphsDiacritics);
-        showScreen('screen-chart');
-    }
+            // Set up target hook variables for drawing operations
+            canvas = document.getElementById('tracingCanvas');
+            ctx = canvas.getContext('2d');
+            initCanvasListeners();
+        });
 
-    function renderChartSection(containerId, dataArray) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        const sysKey = selectedSystem === 'hiragana' ? 'h' : 'k';
-        const showMnemonics = document.getElementById('toggle-mnemonic-view').checked;
-
-        dataArray.forEach(group => {
-            group[sysKey].forEach((char, idx) => {
-                const cell = document.createElement('div');
-                if (!char) {
-                    cell.className = 'chart-cell empty';
-                } else {
-                    cell.className = 'chart-cell';
-                    const romajiVal = group.r[idx];
-                    let badge = '';
-                    
-                    const lookupKey = (romajiVal === 'mo' || romajiVal === 'ni' || romajiVal === 'fu') ? romajiVal : char;
-                    if (showMnemonics && selectedSystem === 'hiragana' && hiraganaMnemonics[lookupKey]) {
-                        badge = `<span class="mnemonic-hint">${hiraganaMnemonics[lookupKey].icon} ${hiraganaMnemonics[lookupKey].keyword}</span>`;
-                    }
-                    cell.innerHTML = `<div class="jp">${char}</div><div class="rm">${romajiVal}</div>${badge}`;
-                    cell.onclick = () => inspectCharacterMnemonic(char, romajiVal);
+        function renderGrid(dataset, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            dataset.forEach(item => {
+                const card = document.createElement('div');
+                if (!item.c) {
+                    card.style.visibility = 'hidden';
+                    container.appendChild(card);
+                    return;
                 }
-                container.appendChild(cell);
+                card.className = 'char-card';
+                card.onclick = () => launchInteractiveTracer(item.c, item.r);
+                card.innerHTML = `<span class="kana">${item.c}</span><span class="romaji">${item.r}</span>`;
+                container.appendChild(card);
             });
-        });
-    }
-
-    function handleMnemonicToggle() {
-        renderChartSection('chart-view-monographs', dataset.monographs);
-        renderChartSection('chart-view-diacritics', dataset.diacritics);
-        renderChartSection('chart-view-digraphs', dataset.digraphs);
-        renderChartSection('chart-view-digraphs-diacritics', dataset.digraphsDiacritics);
-    }
-
-    function inspectCharacterMnemonic(char, romaji) {
-        const lookupKey = (romaji === 'mo' || romaji === 'ni' || romaji === 'fu') ? romaji : char;
-        if (selectedSystem !== 'hiragana' || !hiraganaMnemonics[lookupKey]) return;
-
-        const data = hiraganaMnemonics[lookupKey];
-        
-        // Feed the Japanesepod101 Split Panel View Component
-        document.getElementById('v-panel-char').innerText = char;
-        document.getElementById('v-panel-fg-char').innerText = char;
-        document.getElementById('v-panel-bg-emoji').innerText = data.icon;
-        
-        document.getElementById('v-meta-romaji').innerText = `${romaji.toUpperCase()} • [ ${data.keyword} ]`;
-        document.getElementById('v-meta-desc').innerHTML = `${data.desc}`;
-
-        document.getElementById('app-modal').classList.remove('hidden');
-        document.getElementById('modal-content-results').classList.add('hidden');
-        document.getElementById('modal-content-mnemonic').classList.remove('hidden');
-        isModalOpen = true;
-    }
-
-    function closeMnemonicModal() {
-        document.getElementById('app-modal').classList.add('hidden');
-        document.getElementById('modal-content-mnemonic').classList.add('hidden');
-        isModalOpen = false;
-    }
-
-    function selectSystem(system) {
-        selectedSystem = system;
-        document.getElementById('setup-title').innerText = system === 'hiragana' ? 'Hiragana Quiz Setup' : 'Katakana Quiz Setup';
-        renderSelectionGrid('select-monographs', dataset.monographs, 'select-monographs');
-        renderSelectionGrid('select-diacritics', dataset.diacritics, 'select-diacritics');
-        renderSelectionGrid('select-digraphs', dataset.digraphs, 'select-digraphs');
-        renderSelectionGrid('select-digraphs-diacritics', dataset.digraphsDiacritics, 'select-digraphs-diacritics');
-        showScreen('screen-setup');
-    }
-
-    function renderSelectionGrid(containerId, dataArray, sectionKey) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        const sysKey = selectedSystem === 'hiragana' ? 'h' : 'k';
-
-        dataArray.forEach((group, index) => {
-            const card = document.createElement('div');
-            card.className = 'column-card selected'; 
-            card.dataset.section = sectionKey;
-            card.dataset.index = index;
-            const sampleChar = group[sysKey].find(c => c !== "") || "?";
-            card.innerHTML = `<div class="column-preview">${sampleChar}<span>${group.name}</span></div><div class="checkbox-custom"></div>`;
-            card.onclick = () => card.classList.toggle('selected');
-            container.appendChild(card);
-        });
-    }
-
-    function toggleAllGroups(selectTrue) {
-        document.querySelectorAll('.column-card').forEach(card => {
-            if (selectTrue) card.classList.add('selected');
-            else card.classList.remove('selected');
-        });
-    }
-
-    function startQuiz() {
-        activeQuizDeck = [];
-        const selectedCards = document.querySelectorAll('.column-card.selected');
-
-        selectedCards.forEach(card => {
-            const section = card.dataset.section;
-            const index = parseInt(card.dataset.index);
-            let pool;
-
-            if (section === 'select-monographs') pool = dataset.monographs[index];
-            if (section === 'select-diacritics') pool = dataset.diacritics[index];
-            if (section === 'select-digraphs') pool = dataset.digraphs[index];
-            if (section === 'select-digraphs-diacritics') pool = dataset.digraphsDiacritics[index];
-
-            const sysKey = selectedSystem === 'hiragana' ? 'h' : 'k';
-            pool[sysKey].forEach((char, i) => {
-                if (char) activeQuizDeck.push({ character: char, romaji: pool.r[i] });
-            });
-        });
-
-        if (activeQuizDeck.length === 0) {
-            alert("Select a category row pool group first!");
-            return;
         }
 
-        activeQuizDeck.sort(() => Math.random() - 0.5);
-        currentQuizIndex = 0;
-        quizHistory = { correct: 0, wrongItems: [] };
-        document.getElementById('score-max').innerText = activeQuizDeck.length;
-        showScreen('screen-quiz');
-        nextQuestion();
-    }
+        // Section Display Mode Toggle Switches Routine
+        function switchMode(targetView) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
 
-    function nextQuestion() {
-        if (currentQuizIndex >= activeQuizDeck.length) {
-            triggerCompletionScreen();
-            return;
+            if (targetView === 'hiragana') {
+                document.querySelector('.nav-tabs button:nth-child(1)').classList.add('active');
+                document.getElementById('panel-hiragana').classList.add('active');
+            } else if (targetView === 'katakana') {
+                document.querySelector('.nav-tabs button:nth-child(2)').classList.add('active');
+                document.getElementById('panel-katakana').classList.add('active');
+            } else if (targetView === 'quiz') {
+                document.querySelector('.nav-tabs button:nth-child(3)').classList.add('active');
+                document.getElementById('panel-quiz').classList.add('active');
+            }
         }
-        document.getElementById('score-total').innerText = currentQuizIndex;
-        document.getElementById('quiz-feedback').innerText = '';
-        document.getElementById('quiz-input').value = '';
-        document.getElementById('target-char').innerText = activeQuizDeck[currentQuizIndex].character;
-        document.getElementById('quiz-input').focus();
-    }
 
-    function handleSubmission(event) {
-        event.preventDefault();
-        const inputElement = document.getElementById('quiz-input');
-        const userInput = inputElement.value.trim().toLowerCase();
-        const feedback = document.getElementById('quiz-feedback');
-        const currentItem = activeQuizDeck[currentQuizIndex];
+        // Live Tracer Modal Initialization Controller Engine
+        function launchInteractiveTracer(char, romaji) {
+            currentTracingChar = char;
+            document.getElementById('v-meta-romaji').innerText = `CHARACTER: ${char} [ ${romaji.toUpperCase()} ]`;
 
-        if (!userInput || feedback.innerText !== '') return;
+            document.getElementById('app-modal').classList.remove('hidden');
+            isModalOpen = true;
 
-        const isTargetMatch = (userInput === currentItem.romaji);
-        const isAlternateMatch = (alternateRomajiMap[currentItem.romaji] && userInput === alternateRomajiMap[currentItem.romaji]);
-
-        if (isTargetMatch || isAlternateMatch) {
-            quizHistory.correct++;
-            feedback.innerText = "Correct! 🎉";
-            feedback.className = "feedback correct";
-        } else {
-            feedback.innerText = `Incorrect! Answer: ${currentItem.romaji}`;
-            feedback.className = "feedback incorrect";
-            quizHistory.wrongItems.push({ kana: currentItem.character, correctRomaji: currentItem.romaji, userAnswer: userInput || "blank" });
+            // Trigger reset layout alignment buffer ticks
+            setTimeout(() => {
+                clearTracingCanvas();
+            }, 30);
         }
-        currentQuizIndex++;
-        setTimeout(nextQuestion, 1200);
-    }
 
-    function triggerCompletionScreen() {
-        document.getElementById('modal-score-text').innerHTML = `${quizHistory.correct} <span>/ ${activeQuizDeck.length}</span>`;
-        const errorsBox = document.getElementById('modal-errors-box');
-        const errorItemsList = document.getElementById('modal-wrong-items');
-        errorItemsList.innerHTML = '';
-        
-        if (quizHistory.wrongItems.length > 0) {
-            errorsBox.classList.remove('hidden');
-            quizHistory.wrongItems.forEach(item => {
-                const badge = document.createElement('span');
-                badge.className = 'wrong-item';
-                badge.innerHTML = `<b>${item.kana}</b>: ${item.correctRomaji} (${item.userAnswer})`;
-                errorItemsList.appendChild(badge);
-            });
-        } else errorsBox.classList.add('hidden');
+        function initCanvasListeners() {
+            // Mouse Interaction Listeners
+            canvas.onmousedown = (e) => { isDrawing = true; [lastX, lastY] = getCanvasCoordinates(e); };
+            canvas.onmousemove = drawLinesOnCanvas;
+            canvas.onmouseup = () => isDrawing = false;
+            canvas.onmouseout = () => isDrawing = false;
 
-        document.getElementById('app-modal').classList.remove('hidden');
-        document.getElementById('modal-content-mnemonic').classList.add('hidden');
-        document.getElementById('modal-content-results').classList.remove('hidden');
-        isModalOpen = true;
-    }
-
-    function restartQuizDeck() {
-        document.getElementById('app-modal').classList.add('hidden');
-        isModalOpen = false;
-        activeQuizDeck.sort(() => Math.random() - 0.5);
-        currentQuizIndex = 0;
-        quizHistory = { correct: 0, wrongItems: [] };
-        nextQuestion();
-    }
-
-    function closeModalToMenu() {
-        document.getElementById('app-modal').classList.add('hidden');
-        isModalOpen = false;
-        showScreen('screen-menu');
-    }
-
-    function exitQuiz() { if (confirm("Stop session?")) showScreen('screen-setup'); }
-
-    window.addEventListener('keydown', (e) => {
-        if (!isModalOpen) return;
-        if (!document.getElementById('modal-content-mnemonic').classList.contains('hidden')) {
-            if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); closeMnemonicModal(); }
+            // Touch Screen Mobile Devices Listeners
+            canvas.ontouchstart = (e) => {
+                isDrawing = true;
+                const touch = e.touches[0];
+                [lastX, lastY] = getCanvasCoordinates(touch);
+            };
+            canvas.ontouchmove = (e) => {
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                drawLinesOnCanvas(touch);
+            };
+            canvas.ontouchend = () => isDrawing = false;
         }
-    });
-</script>
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            return [
+                e.clientX - rect.left,
+                e.clientY - rect.top
+            ];
+        }
+
+        function drawLinesOnCanvas(e) {
+            if (!isDrawing) return;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+
+            const [currentX, currentY] = getCanvasCoordinates(e);
+            ctx.lineTo(currentX, currentY);
+
+            // Styling Parameters configurations 
+            ctx.strokeStyle = '#6366f1'; // Modern Indigo Pen Stroke color
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = 1.0;
+            ctx.stroke();
+
+            [lastX, lastY] = [currentX, currentY];
+        }
+
+        function clearTracingCanvas() {
+            // 1. Wipe the current drawing layer clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Render Dotted Quadrant Alignment Center-Guides
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 6]);
+
+            ctx.beginPath(); ctx.moveTo(canvas.width / 2, 0); ctx.lineTo(canvas.width / 2, canvas.height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, canvas.height / 2); ctx.lineTo(canvas.width, canvas.height / 2); ctx.stroke();
+            ctx.setLineDash([]); // Reset structural stroke arrays to solid lines
+
+            // 3. Render Large Translucent Guide Reference Background Character
+            ctx.font = 'bold 165px "Segoe UI", system-ui, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = 0.25; // Light visual footprint to facilitate tracing contrast
+
+            ctx.fillText(currentTracingChar, canvas.width / 2, canvas.height / 2);
+        }
+
+        function closeMnemonicModal() {
+            document.getElementById('app-modal').classList.add('hidden');
+            isModalOpen = false;
+        }
+
+        function handleOutsideModalClick(e) {
+            if (e.target.id === 'app-modal') {
+                closeMnemonicModal();
+            }
+        }
+
+        // Global Escape Hotkey Modal closer listener mappings
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isModalOpen) {
+                closeMnemonicModal();
+            }
+        });
+    </script>
 </body>
 </html>
